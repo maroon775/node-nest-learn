@@ -9,6 +9,7 @@ import {
   Query,
   Req,
   Headers,
+  Header,
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import {
@@ -55,5 +56,12 @@ export class AppController {
   getListActions(@Headers() headers, @Req() request) {
     console.log(request);
     return headers;
+  }
+
+  @Get('/cache-learn')
+  @Header('Cache-Control', 'none')
+  @Header('X-MyHeader', 'abcde')
+  cacheHeaderLearn() {
+    return 'You can see Cache-Control option in headers section';
   }
 }
