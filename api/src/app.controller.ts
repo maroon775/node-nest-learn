@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
 import { AppService } from './app.service';
 import {
   AppErrorResponseDTO,
@@ -27,5 +27,10 @@ export class AppController {
     return {
       errorMessage: 'Forbidden',
     };
+  }
+
+  @Delete(':id')
+  deleteAction(@Param() params) {
+    return `delete item ${params.id}`;
   }
 }
