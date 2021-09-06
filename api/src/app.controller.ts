@@ -1,4 +1,14 @@
-import { Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  Req,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 import {
   AppErrorResponseDTO,
@@ -29,8 +39,14 @@ export class AppController {
     };
   }
 
-  @Delete(':id')
+  @Delete('/user/:id')
   deleteAction(@Param() params) {
     return `delete item ${params.id}`;
+  }
+
+  @Put('post')
+  createItemAction(@Body() body, @Req() req) {
+    console.log(req);
+    return body;
   }
 }

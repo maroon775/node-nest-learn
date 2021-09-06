@@ -6,7 +6,7 @@ import { TransactionsService } from './transactions/transactions.service';
 import { MongooseModule } from '@nestjs/mongoose';
 
 const uri =
-  'mongodb+srv://<maroon775>:<G9Y8FjurQFMGwCAR>@cluster0.2vqay.mongodb.net/myFirstDatabase?retryWrites=true&w=majority';
+  'mongodb+srv://maroon775:iccc0edciDSOrkux@cluster0.2vqay.mongodb.net/nestdatabase?retryWrites=true&w=majority';
 
 @Module({
   imports: [MongooseModule.forRoot(uri)],
