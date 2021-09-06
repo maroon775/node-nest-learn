@@ -8,6 +8,7 @@ import {
   Put,
   Query,
   Req,
+  Headers,
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import {
@@ -47,6 +48,12 @@ export class AppController {
   @Put('post')
   createItemAction(@Body() body, @Req() req) {
     console.log(req);
-    return body;
+    return { ...body, _: Date.now() };
+  }
+
+  @Get('/list')
+  getListActions(@Headers() headers, @Req() request) {
+    console.log(request);
+    return headers;
   }
 }
