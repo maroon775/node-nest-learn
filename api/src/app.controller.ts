@@ -17,6 +17,7 @@ import {
   AuthorizationParamsDTO,
   AuthorizationResponseDTO,
 } from './dto/app.dto';
+import { createCatDTO } from './dto/createCat.dto';
 
 @Controller()
 export class AppController {
@@ -46,9 +47,8 @@ export class AppController {
     return `delete item ${params.id}`;
   }
 
-  @Put('post')
-  createItemAction(@Body() body, @Req() req) {
-    console.log(req);
+  @Put('/cat')
+  createCat(@Body() body: createCatDTO, @Req() req) {
     return { ...body, _: Date.now() };
   }
 
