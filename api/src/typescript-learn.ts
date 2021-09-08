@@ -18,7 +18,7 @@ class Customer {
 }
 
 function customerLogger<T extends Customer>(customer: T): void {
-  console.log(`Log: ${customer.firstName} ${customer.lastName}`);
+  console.log(`generic constraint: ${customer.firstName} ${customer.lastName}`);
 }
 
 const customerFoo = new Customer('Sabrina', 'Born');
@@ -32,10 +32,10 @@ function genericFunction<T>(foo: T): T {
 }
 
 const test1: number = genericFunction(1235);
-console.log(test1);
+console.log('function generic:', test1);
 
 const test2: string = genericFunction('1235');
-console.log(test2);
+console.log('function generic:', test2);
 
 // interface generic
 interface Person<N, A> {
@@ -65,4 +65,17 @@ function checkerElementAt<T>(
 const checker: ICheckerElement = checkerElementAt;
 
 const checkResult: boolean = checker([1, 2, 3, 4, 5], 5, 4);
-console.log(checkResult);
+console.log('interface to describe function type:', checkResult);
+
+// decorators
+
+function logger(target, key, descriptor) {
+  console.log('Decorators logger: ', `${key} was called from logger`);
+}
+
+class MyCalc {
+  @logger
+  create(num: number): number {
+    return 1 + num;
+  }
+}
