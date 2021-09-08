@@ -70,12 +70,32 @@ console.log('interface to describe function type:', checkResult);
 // decorators
 
 function logger(target, key, descriptor) {
+  // const originalFn = descriptor.value;
+  console.log({ target, key, descriptor });
   console.log('Decorators logger: ', `${key} was called from logger`);
+
+  const originalFn = descriptor.value;
+  descriptor.value = function (...args) {
+    const result = originalFn.apply(this, args);
+    console.log(`${key} with arguments ${args} returned ${result}`);
+
+    return result;
+  };
+
+  return descriptor;
 }
 
 class MyCalc {
   @logger
-  create(num: number): number {
-    return 1 + num;
+  sum(...args: number[]): number {
+    return args.reduce((a, b) => a + b, 0);
   }
 }
+
+const calc = new MyCalc();
+
+const result1 = calc.sum(2, 2);
+console.log('result calc.sum(2, 2): ', result1);
+
+const result2 = calc.sum(6, 3);
+console.log('result calc.sum(6, 3): ', result2);
