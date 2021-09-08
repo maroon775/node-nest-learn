@@ -69,24 +69,31 @@ console.log('interface to describe function type:', checkResult);
 
 // decorators
 
-function logger(target, key, descriptor) {
-  // const originalFn = descriptor.value;
-  console.log({ target, key, descriptor });
-  console.log('Decorators logger: ', `${key} was called from logger`);
+function logger(endpoint) {
+  return (target, key, descriptor) => {
+    // const originalFn = descriptor.value;
+    console.log(
+      endpoint,
+      ' / Decorators logger: ',
+      `${key} was called from logger`,
+    );
 
-  const originalFn = descriptor.value;
-  descriptor.value = function (...args) {
-    const result = originalFn.apply(this, args);
-    console.log(`${key} with arguments ${args} returned ${result}`);
+    const originalFn = descriptor.value;
+    descriptor.value = function (...args) {
+      const result = originalFn.apply(this, args);
+      console.log(
+        `${endpoint} / ${key} with arguments ${args} returned ${result}`,
+      );
 
-    return result;
+      return result;
+    };
+
+    return descriptor;
   };
-
-  return descriptor;
 }
 
 class MyCalc {
-  @logger
+  @logger('CalculatorSUM')
   sum(...args: number[]): number {
     return args.reduce((a, b) => a + b, 0);
   }
@@ -99,3 +106,39 @@ console.log('result calc.sum(2, 2): ', result1);
 
 const result2 = calc.sum(6, 3);
 console.log('result calc.sum(6, 3): ', result2);
+
+// property decorator
+function propDecorator(target: any, key: string) {
+  let value = target[key];
+
+  const getter = () => {
+    console.log(`Getter for ${key} returned ${value}`);
+
+    return value;
+  };
+  const setter = (newVal) => {
+    console.log(`Set ${key} to ${newVal}`);
+    value = newVal;
+    return value;
+  };
+
+  const isDeleted = delete target[key];
+  if (isDeleted) {
+    Object.defineProperty(target, key, {
+      get: getter,
+      set: setter,
+      configurable: true,
+      enumerable: true,
+    });
+  }
+}
+
+class CPerson {
+  @propDecorator
+  public firstName: string;
+}
+
+const superman = new CPerson();
+superman.firstName = 'Piter';
+
+console.log(superman.firstName);
