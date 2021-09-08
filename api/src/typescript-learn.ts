@@ -47,3 +47,22 @@ const man: Person<string, number> = {
   name: 'Piter',
   age: 23,
 };
+
+// interface to describe function type
+
+interface ICheckerElement {
+  <T>(items: T[], toBeChecked: T, atIndex: number): boolean;
+}
+
+function checkerElementAt<T>(
+  items: T[],
+  toBeChecked: T,
+  atIndex: number,
+): boolean {
+  return items[atIndex] === toBeChecked;
+}
+
+const checker: ICheckerElement = checkerElementAt;
+
+const checkResult: boolean = checker([1, 2, 3, 4, 5], 5, 4);
+console.log(checkResult);
