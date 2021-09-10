@@ -54,7 +54,6 @@ export class AppController {
 
   @Get('/list')
   getListActions(@Headers() headers, @Req() request) {
-    console.log(request);
     return headers;
   }
 
