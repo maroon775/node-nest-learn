@@ -8,10 +8,16 @@ import {
   NotFoundException,
   Param,
   Post,
+  UseFilters,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { creatProductDto } from './dto/creatProduct.dto';
+import HttpExceptionFilter from '../common/filters/http-exception.filter';
+import { TransformInterceptor } from '../common/interceptors/transform.interceptor';
 
+@UseInterceptors(TransformInterceptor)
+@UseFilters(HttpExceptionFilter)
 @Controller('products')
 export class ProductsController {
   constructor(private productsService: ProductsService) {}
@@ -48,6 +54,7 @@ export class ProductsController {
     };
   }
 
+  // @UseFilters(HttpExceptionFilter)
   @Delete(':id')
   removeProduct(@Param('id') id) {
     const product = this.productsService.findByPrimaryKey(id);
