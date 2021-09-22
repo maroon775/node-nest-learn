@@ -1,18 +1,15 @@
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
-export class creatProductDto {
+export class CreateProductDto {
   @IsNotEmpty()
   @IsString()
-  name: string;
+  readonly name: string;
 
   @IsNotEmpty()
   @IsNumber()
-  quantity: number;
+  readonly quantity: number;
 
   @IsNotEmpty()
   @IsNumber()
-  price: number;
-
-  @IsString()
-  color?: string;
+  readonly price: number;
 }

@@ -3,68 +3,50 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
-  HttpStatus,
-  NotFoundException,
   Param,
   Post,
-  UseFilters,
+  Put,
   UseInterceptors,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { creatProductDto } from './dto/creatProduct.dto';
-import HttpExceptionFilter from '../common/filters/http-exception.filter';
+import { CreateProductDto } from './dto/create-product.dto';
 import { TransformInterceptor } from '../common/interceptors/transform.interceptor';
+import { DeleteResult } from 'typeorm';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @UseInterceptors(TransformInterceptor)
-@UseFilters(HttpExceptionFilter)
+// @UseFilters(HttpExceptionFilter)
 @Controller('products')
 export class ProductsController {
   constructor(private productsService: ProductsService) {}
 
   @Get()
-  getAll() {
+  async getAll() {
     return this.productsService.findAll();
   }
 
-  @Get(':id')
-  findOneById(@Param('id') id) {
-    const product = this.productsService.findByPrimaryKey(id);
-    if (product) {
-      return product;
-    }
+  @Get('count')
+  async count() {
+    return this.productsService.count();
+  }
 
-    throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
+  @Get(':id')
+  async findOneById(@Param('id') id) {
+    return await this.productsService.findOne(id);
   }
 
   @Post()
-  createProduct(@Body() productData: creatProductDto) {
-    this.productsService.create(productData);
-    return {
-      success: true,
-    };
+  async createProduct(@Body() productData: CreateProductDto) {
+    return this.productsService.create(productData);
   }
 
-  @Post('/batch')
-  createBatchProducts(@Body() products: [creatProductDto]) {
-    this.productsService.batchCreate(products);
-    return {
-      count: this.productsService.findAll().length,
-      success: true,
-    };
-  }
-
-  // @UseFilters(HttpExceptionFilter)
   @Delete(':id')
-  removeProduct(@Param('id') id) {
-    const product = this.productsService.findByPrimaryKey(id);
-    if (product) {
-      this.productsService.remove(id);
-      return {
-        success: true,
-      };
-    }
+  async delete(@Param('id') id): Promise<DeleteResult> {
+    return this.productsService.delete(id);
+  }
 
-    throw new NotFoundException();
+  @Put(':id')
+  async update(@Param('id') id, @Body() data: UpdateProductDto) {
+    return this.productsService.update(id, data);
   }
 }
