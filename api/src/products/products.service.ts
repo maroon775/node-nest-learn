@@ -2,19 +2,24 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { ProductsEntity } from './entities/products.entity';
-import { Product } from './interfaces/product';
+import { Product, UpdateProduct } from './interfaces/product';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ProductDetailEntity } from './entities/product-detail.entity';
 
 @Injectable()
 export class ProductsService {
   constructor(
     @InjectRepository(ProductsEntity)
     private readonly productsRepository: Repository<ProductsEntity>,
+    @InjectRepository(ProductDetailEntity)
+    private readonly productDetailRepository: Repository<ProductDetailEntity>,
   ) {}
 
   async _findProduct(id) {
-    const product = await this.productsRepository.findOne(id);
+    const product = await this.productsRepository.findOne(id, {
+      relations: ['productDetail'],
+    });
 
     if (product) {
       return product;
@@ -23,8 +28,14 @@ export class ProductsService {
     throw new NotFoundException('Could not find any product');
   }
 
-  async create(product: CreateProductDto): Promise<Product> {
-    return await this.productsRepository.save(product);
+  async create(createProduct: CreateProductDto): Promise<Product> {
+    const productEntity = await this.productsRepository.create(createProduct);
+
+    productEntity.productDetail = await this.productDetailRepository.save(
+      createProduct.productDetail,
+    );
+
+    return await this.productsRepository.save(productEntity);
   }
 
   async count() {
@@ -34,12 +45,13 @@ export class ProductsService {
   }
 
   async findAll(): Promise<Product[]> {
-    return this.productsRepository.find();
+    return this.productsRepository.find({
+      relations: ['productDetail'],
+    });
   }
 
   async findOne(id: number): Promise<Product> {
-    const product = await this._findProduct(id);
-    return this.productsRepository.findOne(product.id);
+    return await this._findProduct(id);
   }
 
   async delete(id: number): Promise<DeleteResult> {
@@ -47,34 +59,11 @@ export class ProductsService {
     return await this.productsRepository.delete(product.id);
   }
 
-  async update(id: number, recordToUpdate: UpdateProductDto): Promise<Product> {
+  async update(id: number, recordToUpdate: UpdateProduct): Promise<Product> {
     const product = await this._findProduct(id);
-    const productData = await this.productsRepository.merge(
-      product,
-      recordToUpdate,
-    );
-    return await this.productsRepository.save(productData);
-  }
+    await this.productsRepository.merge(product, recordToUpdate);
 
-  /*
-    
-            
-            
-              create(product) {
-                this.products.push({
-                  id: this.products.length + 1,
-                  ...product,
-                });
-              }
-            
-              batchCreate(products) {
-                this.products = this.products.concat(products);
-              }
-            
-             
-          
-              private _findIndexById(id) {
-                return this.products.findIndex((product) => product.id == id);
-              }
-            */
+    await this.productDetailRepository.save(product.productDetail);
+    return await this.productsRepository.save(product);
+  }
 }

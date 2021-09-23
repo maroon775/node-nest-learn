@@ -1,4 +1,5 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
+import { UpdateProductDetailDto } from './update-product-detail.dto';
 
 export class UpdateProductDto {
   @IsOptional()
@@ -12,4 +13,8 @@ export class UpdateProductDto {
   @IsOptional()
   @IsNumber()
   readonly price: number;
+
+  @IsOptional()
+  @IsObject()
+  readonly productDetail: UpdateProductDetailDto;
 }

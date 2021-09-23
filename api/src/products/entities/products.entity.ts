@@ -1,10 +1,4 @@
-import {
-  Column,
-  Entity,
-  OneToOne,
-  PrimaryGeneratedColumn,
-  JoinColumn,
-} from 'typeorm';
+import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ProductDetailEntity } from './product-detail.entity';
 
 @Entity({ name: 'products' })
@@ -18,7 +12,9 @@ export class ProductsEntity {
   @Column()
   price: number;
 
-  @OneToOne((type) => ProductDetailEntity)
-  @JoinColumn()
-  productDetails: ProductDetailEntity;
+  @OneToOne(
+    (type) => ProductDetailEntity,
+    (productDetail) => productDetail.product,
+  )
+  productDetail: ProductDetailEntity;
 }

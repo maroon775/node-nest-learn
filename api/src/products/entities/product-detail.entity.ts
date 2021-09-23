@@ -1,9 +1,17 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { ProductsEntity } from './products.entity';
 
 @Entity({ name: 'product-detail' })
 export class ProductDetailEntity {
   @PrimaryGeneratedColumn()
   id: number;
+
   @Column({ length: 45 })
   partNumber: string;
 
@@ -15,6 +23,14 @@ export class ProductDetailEntity {
 
   @Column({ length: 45 })
   manufacturer: string;
+
   @Column({ length: 45 })
   origin: string;
+
+  @OneToOne(() => ProductsEntity, (product) => product.productDetail, {
+    onDelete: 'CASCADE',
+    cascade: ['insert'],
+  })
+  @JoinColumn()
+  product: ProductsEntity;
 }

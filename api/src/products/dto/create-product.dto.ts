@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsObject, IsString } from 'class-validator';
+import { CreateProductDetailDto } from './create-product-detail.dto';
 
 export class CreateProductDto {
   @IsNotEmpty()
@@ -12,4 +13,8 @@ export class CreateProductDto {
   @IsNotEmpty()
   @IsNumber()
   readonly price: number;
+
+  @IsNotEmpty()
+  @IsObject()
+  readonly productDetail: CreateProductDetailDto;
 }
