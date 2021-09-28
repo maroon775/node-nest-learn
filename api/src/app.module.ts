@@ -18,7 +18,6 @@ const uri =
 @Module({
   imports: [
     MongooseModule.forRoot(uri),
-    MongooseModule.forFeature(),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
