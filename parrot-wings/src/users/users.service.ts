@@ -1,11 +1,13 @@
 import {
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersEntity } from './entities/users.entity';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { AuthenticatedResponse, User } from './interfaces/user';
 import { CreateUserDto } from './dto/create-user.dto';
 import { HashStringService } from '../common/services/hash-string';
@@ -13,7 +15,6 @@ import { JwtService } from '@nestjs/jwt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { LoginUserDto } from './dto/login-user.dto';
-import { TransactionsEntity } from '../transactions/entities/transactions.entity';
 
 class EventSignUp {
   constructor(public user: User) {}
@@ -24,8 +25,6 @@ export class UsersService {
   constructor(
     @InjectRepository(UsersEntity)
     private readonly usersRepository: Repository<UsersEntity>,
-    @InjectRepository(TransactionsEntity)
-    private readonly transactionsRepository: Repository<TransactionsEntity>,
     private readonly hashStringService: HashStringService,
     private readonly jwtService: JwtService,
     private readonly eventEmitter: EventEmitter2,
@@ -36,8 +35,9 @@ export class UsersService {
       email: createUserDto.email,
     });
     if (user) {
-      throw new UnauthorizedException(
-        `User with email ${user.email} already exist`,
+      throw new HttpException(
+        'A user with that email already exists',
+        HttpStatus.BAD_REQUEST,
       );
     }
 
@@ -60,6 +60,25 @@ export class UsersService {
       throw new NotFoundException(`Can't find user with id=${id}`);
     }
 
+    if (updateUserDto.email) {
+      const _checkEmail = await this.usersRepository.findOne({
+        id: Not(id),
+        email: updateUserDto.email,
+      });
+      if (_checkEmail) {
+        throw new HttpException(
+          'A user with that email already exists',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
+    if (updateUserDto.password) {
+      updateUserDto.password = await this.hashStringService.hashPassword(
+        updateUserDto.password,
+      );
+    }
+
     const userData = this.usersRepository.merge(user, updateUserDto);
     return await this.usersRepository.save(userData);
   }
@@ -72,26 +91,32 @@ export class UsersService {
     const user = await this.usersRepository.findOne({
       email: loginUserDto.email,
     });
+    if (
+      !user ||
+      (await this.hashStringService.comparePassword(
+        loginUserDto.password,
+        user.password,
+      )) === false
+    ) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
     const token = await this.__createAuthToken(user);
     return { token };
   }
 
   async profile(id: number): Promise<User> {
-    const user = await this.usersRepository.findOne(id, {
-      relations: ['transactions'],
-      select: ['id', 'email', 'fullName'],
-    });
-
-    const { balance } = await this.transactionsRepository
-      .createQueryBuilder('t')
-      .select('SUM(t.amount) as balance')
-      .where('t.userId=:id', { id: user.id })
+    return await this.usersRepository
+      .createQueryBuilder('u')
+      .leftJoin('transactions', 't', 't.userId=u.id')
+      .select([
+        'u.id as id',
+        'u.email as email',
+        'u.fullName as fullName',
+        'SUM(t.amount) as balance',
+      ])
+      .where('u.id = :id', { id })
       .getRawOne();
-
-    return {
-      balance,
-      ...user,
-    };
   }
 
   private async __createAuthToken(user) {
@@ -101,7 +126,7 @@ export class UsersService {
         id: user.id,
       },
       {
-        expiresIn: '1h',
+        expiresIn: '1d',
         secret: process.env.JWT_SECRET,
       },
     );

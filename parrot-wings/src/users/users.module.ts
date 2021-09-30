@@ -8,7 +8,6 @@ import { JwtStrategyService } from '../common/services/jwt-strategy';
 import { TransactionsService } from '../transactions/transactions.service';
 import { TransactionsEntity } from '../transactions/entities/transactions.entity';
 import { JwtModule } from '@nestjs/jwt';
-import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
