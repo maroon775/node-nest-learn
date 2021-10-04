@@ -50,7 +50,7 @@ export class UsersService {
     const event = new EventSignUp(newUser);
     await this.eventEmitter.emit('users.signup', event);
 
-    const token = await this.__createAuthToken(newUser);
+    const token = this.createAuthToken(newUser);
     return { token };
   }
 
@@ -91,17 +91,15 @@ export class UsersService {
     const user = await this.usersRepository.findOne({
       email: loginUserDto.email,
     });
-    if (
-      !user ||
-      (await this.hashStringService.comparePassword(
-        loginUserDto.password,
-        user.password,
-      )) === false
-    ) {
+    const isValidPassword = await this.hashStringService.comparePassword(
+      loginUserDto.password,
+      user.password,
+    );
+    if (!user || !isValidPassword) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const token = await this.__createAuthToken(user);
+    const token = this.createAuthToken(user);
     return { token };
   }
 
@@ -119,8 +117,8 @@ export class UsersService {
       .getRawOne();
   }
 
-  private async __createAuthToken(user) {
-    return await this.jwtService.signAsync(
+  private createAuthToken(user) {
+    return this.jwtService.sign(
       {
         email: user.email,
         id: user.id,

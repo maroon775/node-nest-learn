@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { OnEvent } from '@nestjs/event-emitter';
 import { SignupBonusDto } from './dto/signup-bonus.dto';
@@ -20,6 +13,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { TransactionsEntity } from './entities/transactions.entity';
+import { AuthenticatedUser } from '../users/decorators/authenticated-user';
+import { UsersEntity } from '../users/entities/users.entity';
 
 @ApiTags('transactions')
 @Controller('transactions')
@@ -28,11 +23,6 @@ export class TransactionsController {
     private readonly transactionsService: TransactionsService,
     private readonly usersService: UsersService,
   ) {}
-
-  @OnEvent('users.signup')
-  __signUpHandler(payload: SignupBonusDto) {
-    return this.transactionsService.welcomeBonusTransaction(payload.user);
-  }
 
   @ApiOperation({ summary: 'Authorized user transactions' })
   @ApiResponse({
@@ -43,8 +33,10 @@ export class TransactionsController {
   @ApiBearerAuth()
   @Get()
   @UseGuards(AuthGuard('jwt'))
-  async userTransactions(@Request() req): Promise<Transaction[]> {
-    return await this.transactionsService.getTransactionsByUser(req.user.id);
+  async userTransactions(
+    @AuthenticatedUser() user: UsersEntity,
+  ): Promise<Transaction[]> {
+    return await this.transactionsService.getTransactionsByUser(user.id);
   }
 
   @ApiOperation({ summary: 'Transfer money between two users' })
@@ -58,11 +50,13 @@ export class TransactionsController {
   @UseGuards(AuthGuard('jwt'))
   async transfer(
     @Body() sendTransactionDto: SendTransactionDto,
-    @Request() req,
+    @AuthenticatedUser() user: UsersEntity,
   ): Promise<Transaction[]> {
-    return await this.transactionsService.transfer(
-      req.user.id,
-      sendTransactionDto,
-    );
+    return await this.transactionsService.transfer(user.id, sendTransactionDto);
+  }
+
+  @OnEvent('users.signup')
+  private signUpHandler(payload: SignupBonusDto) {
+    return this.transactionsService.welcomeBonusTransaction(payload.user);
   }
 }
