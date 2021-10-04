@@ -91,10 +91,12 @@ export class UsersService {
     const user = await this.usersRepository.findOne({
       email: loginUserDto.email,
     });
-    const isValidPassword = await this.hashStringService.comparePassword(
-      loginUserDto.password,
-      user.password,
-    );
+    const isValidPassword =
+      user &&
+      (await this.hashStringService.comparePassword(
+        loginUserDto.password,
+        user.password,
+      ));
     if (!user || !isValidPassword) {
       throw new UnauthorizedException('Invalid email or password');
     }
