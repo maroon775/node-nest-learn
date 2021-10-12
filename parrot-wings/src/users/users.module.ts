@@ -8,6 +8,7 @@ import { JwtStrategyService } from '../common/services/jwt-strategy';
 import { TransactionsService } from '../transactions/transactions.service';
 import { TransactionsEntity } from '../transactions/entities/transactions.entity';
 import { JwtModule } from '@nestjs/jwt';
+import { UserSubscriber } from './subscribers/users.subscriber';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { JwtModule } from '@nestjs/jwt';
     TransactionsService,
     UsersService,
     HashStringService,
+    UserSubscriber,
   ],
   controllers: [UsersController],
 })

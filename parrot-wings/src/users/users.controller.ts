@@ -32,7 +32,7 @@ export class UsersController {
   @Get('profile')
   @UseGuards(AuthGuard('jwt'))
   async profile(@AuthenticatedUser() user: UsersEntity): Promise<User> {
-    return await this.usersService.profile(user.id);
+    return await this.usersService.getUser(user.id, true);
   }
 
   @ApiBearerAuth()

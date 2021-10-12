@@ -41,10 +41,6 @@ export class UsersService {
       );
     }
 
-    createUserDto.password = await this.hashStringService.hashPassword(
-      createUserDto.password,
-    );
-
     const newUser = await this.usersRepository.save(createUserDto);
 
     const event = new EventSignUp(newUser);
@@ -73,18 +69,8 @@ export class UsersService {
       }
     }
 
-    if (updateUserDto.password) {
-      updateUserDto.password = await this.hashStringService.hashPassword(
-        updateUserDto.password,
-      );
-    }
-
     const userData = this.usersRepository.merge(user, updateUserDto);
     return await this.usersRepository.save(userData);
-  }
-
-  async checkUserById(id: number): Promise<User> {
-    return this.usersRepository.findOne(id);
   }
 
   async login(loginUserDto: LoginUserDto): Promise<AuthenticatedResponse> {
@@ -105,18 +91,27 @@ export class UsersService {
     return { token };
   }
 
-  async profile(id: number): Promise<User> {
-    return await this.usersRepository
+  async getUser(id: number, withBalance = false): Promise<User> {
+    const query = this.usersRepository
       .createQueryBuilder('u')
-      .leftJoin('transactions', 't', 't.userId=u.id')
-      .select([
+      .where('u.id = :id', { id });
+    if (withBalance) {
+      query
+        .leftJoin('transactions', 't', 't.userId=u.id')
+        .select([
+          'u.id as id',
+          'u.email as email',
+          'u.fullName as fullName',
+          'SUM(t.amount) as balance',
+        ]);
+    } else {
+      query.select([
         'u.id as id',
         'u.email as email',
         'u.fullName as fullName',
-        'SUM(t.amount) as balance',
-      ])
-      .where('u.id = :id', { id })
-      .getRawOne();
+      ]);
+    }
+    return await query.getRawOne();
   }
 
   private createAuthToken(user) {
