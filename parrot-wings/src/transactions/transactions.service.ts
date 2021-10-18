@@ -34,7 +34,7 @@ export class TransactionsService {
       user,
       balance: 0,
       description: 'welcome bonus',
-      amount: parseFloat(process.env.MONEY_BONUS),
+      amount: parseFloat(process.env.WELCOME_BONUS),
     });
   }
 

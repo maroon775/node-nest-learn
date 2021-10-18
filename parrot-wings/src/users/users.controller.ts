@@ -1,11 +1,19 @@
-import { Body, Controller, Get, Post, Put, UseGuards } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
+import { createUserDTO } from './dto/create-user.dto';
 import { AuthenticatedResponse, User } from './interfaces/user';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
-import { LoginUserDto } from './dto/login-user.dto';
+import { loginUserDto } from './dto/login-user.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { updateUserDTO } from './dto/update-user.dto';
 import { AuthenticatedUser } from './decorators/authenticated-user';
 import { UsersEntity } from './entities/users.entity';
 
@@ -14,16 +22,19 @@ import { UsersEntity } from './entities/users.entity';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get()
+  async getAll(): Promise<User[]> {
+    return await this.usersService.getAll();
+  }
+
   @Post('sign-up')
-  async signup(
-    @Body() createUserDTO: CreateUserDto,
-  ): Promise<AuthenticatedResponse> {
-    return await this.usersService.signUp(createUserDTO);
+  signup(@Body() createUserDTO: createUserDTO): Promise<AuthenticatedResponse> {
+    return this.usersService.signUp(createUserDTO);
   }
 
   @Post('login')
   async login(
-    @Body() loginUserDto: LoginUserDto,
+    @Body() loginUserDto: loginUserDto,
   ): Promise<AuthenticatedResponse> {
     return await this.usersService.login(loginUserDto);
   }
@@ -40,8 +51,15 @@ export class UsersController {
   @UseGuards(AuthGuard('jwt'))
   async edit(
     @AuthenticatedUser() user: UsersEntity,
-    @Body() updateUserDto: UpdateUserDto,
+    @Body() updateUserDto: updateUserDTO,
   ): Promise<User> {
     return await this.usersService.update(user.id, updateUserDto);
+  }
+
+  @ApiBearerAuth()
+  @Delete('delete')
+  @UseGuards(AuthGuard('jwt'))
+  async delete(@AuthenticatedUser() user: UsersEntity) {
+    return await this.usersService.delete(user.id);
   }
 }

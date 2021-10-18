@@ -9,12 +9,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UsersEntity } from './entities/users.entity';
 import { Not, Repository } from 'typeorm';
 import { AuthenticatedResponse, User } from './interfaces/user';
-import { CreateUserDto } from './dto/create-user.dto';
+import { createUserDTO } from './dto/create-user.dto';
 import { HashStringService } from '../common/services/hash-string';
 import { JwtService } from '@nestjs/jwt';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { updateUserDTO } from './dto/update-user.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { LoginUserDto } from './dto/login-user.dto';
+import { loginUserDto } from './dto/login-user.dto';
 
 class EventSignUp {
   constructor(public user: User) {}
@@ -30,7 +30,11 @@ export class UsersService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async signUp(createUserDto: CreateUserDto): Promise<AuthenticatedResponse> {
+  getAll(): Promise<UsersEntity[]> {
+    return this.usersRepository.find();
+  }
+
+  async signUp(createUserDto: createUserDTO): Promise<AuthenticatedResponse> {
     const user = await this.usersRepository.findOne({
       email: createUserDto.email,
     });
@@ -50,7 +54,7 @@ export class UsersService {
     return { token };
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: number, updateUserDto: updateUserDTO): Promise<User> {
     const user = await this.usersRepository.findOne(id);
     if (!user) {
       throw new NotFoundException(`Can't find user with id=${id}`);
@@ -73,7 +77,7 @@ export class UsersService {
     return await this.usersRepository.save(userData);
   }
 
-  async login(loginUserDto: LoginUserDto): Promise<AuthenticatedResponse> {
+  async login(loginUserDto: loginUserDto): Promise<AuthenticatedResponse> {
     const user = await this.usersRepository.findOne({
       email: loginUserDto.email,
     });
@@ -125,5 +129,9 @@ export class UsersService {
         secret: process.env.JWT_SECRET,
       },
     );
+  }
+
+  async delete(userId: number) {
+    return this.usersRepository.delete(userId);
   }
 }

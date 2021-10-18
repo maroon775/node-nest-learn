@@ -49,7 +49,6 @@ export class TransactionsEntity {
   userId: number;
 
   @ManyToOne(() => UsersEntity, (userEntity) => userEntity.transactions)
-  @JoinColumn()
   user: UsersEntity;
 
   @OneToOne(() => TransactionsEntity)
